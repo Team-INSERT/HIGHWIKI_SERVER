@@ -44,7 +44,4 @@ object Dependencies {
     // aop
     const val AOP = "org.aspectj:aspectjweaver:${DependencyVersions.ASPECTJ_VERSION}"
 
-    // detekt
-    const val DETEKT = "io.gitlab.arturbosch.detekt:detekt-formatting:${PluginVersions.DETEKT_VERSION}"
-
 }

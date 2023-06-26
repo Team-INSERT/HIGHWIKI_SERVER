@@ -1,6 +1,5 @@
 plugins {
 	kotlin("jvm") version PluginVersions.JVM_VERSION
-	id("io.gitlab.arturbosch.detekt").version(PluginVersions.DETEKT_VERSION)
 }
 
 subprojects {
@@ -12,18 +11,6 @@ subprojects {
 	apply {
 		plugin("org.jetbrains.kotlin.kapt")
 		version = PluginVersions.KAPT_VERSION
-	}
-
-	apply {
-		plugin("io.gitlab.arturbosch.detekt")
-		version = PluginVersions.DETEKT_VERSION
-	}
-
-	detekt {
-		toolVersion = PluginVersions.DETEKT_VERSION
-		buildUponDefaultConfig = true
-		autoCorrect = true
-		config = files("config/detekt/detekt.yml")
 	}
 
 	dependencies {
@@ -39,13 +26,11 @@ subprojects {
 		// test
 		implementation(Dependencies.SPRING_TEST)
 		implementation(Dependencies.MOCKK)
-
-		detektPlugins(Dependencies.DETEKT)
 	}
 }
 
 allprojects {
-	group = "team.aliens"
+	group = "high.wiki"
 	version = "0.0.1-SNAPSHOT"
 
 	apply(plugin = "jacoco")
