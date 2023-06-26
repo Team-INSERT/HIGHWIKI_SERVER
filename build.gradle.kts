@@ -1,129 +1,97 @@
-@file:Suppress("DEPRECATION")
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-	id("org.springframework.boot") version "3.1.0"
-	id("io.spring.dependency-management") version "1.1.0"
-	kotlin("jvm") version "1.8.21"
-	kotlin("plugin.spring") version "1.8.21"
-	jacoco
+	kotlin("jvm") version PluginVersions.JVM_VERSION
+	id("io.gitlab.arturbosch.detekt").version(PluginVersions.DETEKT_VERSION)
 }
 
-group = "wiki.hi"
-version = "0.0.1-SNAPSHOT"
+subprojects {
+	apply {
+		plugin("org.jetbrains.kotlin.jvm")
+		version = PluginVersions.JVM_VERSION
+	}
 
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-}
+	apply {
+		plugin("org.jetbrains.kotlin.kapt")
+		version = PluginVersions.KAPT_VERSION
+	}
 
-repositories {
-	mavenCentral()
-}
+	apply {
+		plugin("io.gitlab.arturbosch.detekt")
+		version = PluginVersions.DETEKT_VERSION
+	}
 
-dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-}
+	detekt {
+		toolVersion = PluginVersions.DETEKT_VERSION
+		buildUponDefaultConfig = true
+		autoCorrect = true
+		config = files("config/detekt/detekt.yml")
+	}
 
-tasks.withType<KotlinCompile> {
-	kotlinOptions {
-		freeCompilerArgs += "-Xjsr305=strict"
-		jvmTarget = "17"
+	dependencies {
+
+		// kotlin
+		implementation(Dependencies.KOTLIN_REFLECT)
+		implementation(Dependencies.KOTLIN_JDK)
+		implementation(Dependencies.JACKSON)
+
+		// java servlet
+		implementation(Dependencies.JAVA_SERVLET)
+
+		// test
+		implementation(Dependencies.SPRING_TEST)
+		implementation(Dependencies.MOCKK)
+
+		detektPlugins(Dependencies.DETEKT)
 	}
 }
 
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
+allprojects {
+	group = "team.aliens"
+	version = "0.0.1-SNAPSHOT"
 
-tasks.withType<KotlinCompile> {
-	kotlinOptions {
-		freeCompilerArgs = listOf("-Xjsr305=strict")
-		jvmTarget = "17"
+	apply(plugin = "jacoco")
+
+	tasks {
+		compileKotlin {
+			kotlinOptions {
+				freeCompilerArgs = listOf("-Xjsr305=strict")
+				jvmTarget = "17"
+			}
+		}
+
+		compileJava {
+			sourceCompatibility = JavaVersion.VERSION_17.majorVersion
+		}
+
+		test {
+			useJUnitPlatform()
+		}
+	}
+
+	repositories {
+		mavenCentral()
 	}
 }
 
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
+tasks.register<JacocoReport>("jacocoRootReport") {
+	subprojects {
+		this@subprojects.plugins.withType<JacocoPlugin>().configureEach {
+			this@subprojects.tasks.matching {
+				it.extensions.findByType<JacocoTaskExtension>() != null
+			}
+				.configureEach {
+					sourceSets(this@subprojects.the<SourceSetContainer>().named("main").get())
+					executionData(this)
+				}
+		}
+	}
 
-tasks.test {
-	finalizedBy("jacocoTestReport")
-}
-
-jacoco {
-	// JaCoCo 버전
-	toolVersion = "0.8.10"
-}
-
-tasks.jacocoTestReport {
 	reports {
-		// 원하는 리포트를 켜고 끌 수 있다.
-		html.isEnabled = true
-		xml.isEnabled = false
-		csv.isEnabled = false
-	}
-
-	finalizedBy("jacocoTestCoverageVerification")
-}
-
-tasks.jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			limit {
-				// INSTRUCTION은 최소 100%를 만족해야 한다.
-				minimum = "1.00".toBigDecimal()
-			}
-		}
-
-		rule {
-			// 룰을 간단히 켜고 끌 수 있다.
-			enabled = true
-
-			// 룰을 체크할 단위는 클래스 단위
-			element = "CLASS"
-
-			// 브랜치 커버리지를 최소한 100% 만족시켜야 한다.
-			limit {
-				counter = "BRANCH"
-				value = "COVEREDRATIO"
-				minimum = "1.00".toBigDecimal()
-			}
-
-			// 라인 커버리지를 최소한 100% 만족시켜야 한다.
-			limit {
-				counter = "LINE"
-				value = "COVEREDRATIO"
-				minimum = "1.00".toBigDecimal()
-			}
-
-			// 빈 줄을 제외한 코드의 라인수를 최대 200라인으로 제한한다.
-			limit {
-				counter = "LINE"
-				value = "TOTALCOUNT"
-				maximum = "200".toBigDecimal()
-			}
-
-			// 커버리지 체크를 제외할 클래스들
-			excludes = listOf(
-//                    "*.test.*",
-//                    "*.Kotlin*"
-			)
-		}
+		xml.outputLocation.set(File("${buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
+		xml.required.set(true)
+		html.required.set(false)
 	}
 }
 
-val testCoverage by tasks.registering {
-	group = "verification"
-	description = "Runs the unit tests with coverage"
-
-	dependsOn(":test",
-		":jacocoTestReport",
-		":jacocoTestCoverageVerification")
-
-	tasks["jacocoTestReport"].mustRunAfter(tasks["test"])
-	tasks["jacocoTestCoverageVerification"].mustRunAfter(tasks["jacocoTestReport"])
+tasks.getByName<Jar>("jar") {
+	enabled = false
 }

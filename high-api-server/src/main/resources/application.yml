@@ -1,0 +1,6 @@
+spring:
+  config:
+    import:
+      - core.yml
+      - infrastructure.yml
+      - persistence.yml
