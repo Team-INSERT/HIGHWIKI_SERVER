@@ -7,11 +7,9 @@ plugins {
 
 dependencies {
     // impl project
+    implementation(project(":high-persistence"))
     implementation(project(":high-core"))
-    runtimeOnly(project(":high-internal-api-server"))
-
-    // web
-    implementation(Dependencies.SPRING_WEB)
+    implementation(project(":high-presentation"))
 
     // validation
     implementation(Dependencies.SPRING_VALIDATION)
@@ -33,9 +31,15 @@ dependencies {
 
     // aop
     implementation(Dependencies.AOP)
-
 }
 
-tasks.getByName<Jar>("bootJar") {
+kapt {
+    arguments {
+        arg("mapstruct.defaultComponentModel", "spring")
+        arg("mapstruct.unmappedTargetPolicy", "ignore")
+    }
+}
+
+tasks.getByName<Jar>("jar") {
     enabled = false
 }

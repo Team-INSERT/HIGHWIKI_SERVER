@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     // impl project
-    compileOnly(project(":high-core"))
+    implementation(project(":high-core"))
 
     // database
     implementation(Dependencies.SPRING_DATA_JPA)
@@ -16,6 +16,7 @@ dependencies {
     // querydsl
     implementation(Dependencies.QUERYDSL)
     kapt(Dependencies.QUERYDSL_PROCESSOR)
+
 }
 
 allOpen {
