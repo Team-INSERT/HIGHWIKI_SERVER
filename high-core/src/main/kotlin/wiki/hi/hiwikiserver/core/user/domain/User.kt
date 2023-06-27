@@ -7,5 +7,5 @@ data class User (
     val authority: Authority,
     val schoolId: Long,
     val contributeId: ArrayList<Long>,
-    val thumbsUpId: ArrayList<Long>
+    val thumbsUpsId: ArrayList<Long>
 )

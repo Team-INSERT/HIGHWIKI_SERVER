@@ -2,4 +2,4 @@ spring:
   config:
     import:
       - core.yml
-      - persistence.yml
+      - infrastructure.yml
